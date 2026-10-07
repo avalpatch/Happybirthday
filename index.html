@@ -25,7 +25,8 @@
         transition: background 0.8s ease;
     }
 
-    /* === ФОТО-ФОН (активируется кнопкой ✨) === */
+    /* === ФОТО-ФОН: растягивается, но НЕ полностью === */
+    /* Слой 1: размытая заливка (заполняет пустоты по краям) */
     body::before {
         content: '';
         position: fixed;
@@ -34,30 +35,31 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        filter: blur(30px) brightness(0.5);
+        opacity: 0;
+        transition: opacity 1s ease;
+        z-index: -2;
+        pointer-events: none;
+        transform: scale(1.1);
+    }
+
+    /* Слой 2: само фото целиком, по центру, без обрезки */
+    body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url('niki.jpg'); /* ← ТВОЁ ФОТО */
+        background-size: contain;      /* ← фото вписывается целиком */
+        background-position: center;
+        background-repeat: no-repeat;
         opacity: 0;
         transition: opacity 1s ease;
         z-index: -1;
         pointer-events: none;
     }
 
-    body.photo-mode::before { opacity: 1; }
-
-    /* Затемнение поверх фото для читаемости */
-    body.photo-mode::after {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(2px);
-        z-index: 0;
-        pointer-events: none;
-        animation: fadeIn 1s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
+    body.photo-mode::before,
+    body.photo-mode::after { opacity: 1; }
 
     @keyframes gradientShift {
         0%, 100% { background-position: 0% 50%; }
@@ -169,12 +171,17 @@
         border-radius: 20px;
         padding: 12px 22px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        transition: all 0.5s ease;
+        transition: all 0.6s ease;
     }
 
+    /* === ФОН ВИДЖЕТОВ МЕНЯЕТСЯ В ФОТО-РЕЖИМЕ === */
     body.photo-mode .countdown {
-        background: rgba(0, 0, 0, 0.5);
-        border-color: rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6),
+                    0 0 60px rgba(255, 255, 255, 0.15) inset;
     }
 
     .countdown-title {
@@ -251,16 +258,22 @@
         width: 100%;
         background: rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-radius: 24px;
         padding: 20px;
         box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
         border: 1px solid rgba(255,255,255,0.15);
-        transition: opacity 0.6s ease, transform 0.6s ease;
+        transition: all 0.6s ease;
     }
 
+    /* === ФОН ВИДЖЕТА ИГРЫ МЕНЯЕТСЯ В ФОТО-РЕЖИМЕ === */
     body.photo-mode .game-wrapper {
-        background: rgba(0, 0, 0, 0.65);
-        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
+                    0 0 80px rgba(255, 255, 255, 0.15) inset;
     }
 
     .game-wrapper.hide {
@@ -301,6 +314,12 @@
         cursor: none;
         user-select: none;
         touch-action: none;
+        transition: background 0.6s ease;
+    }
+
+    /* Игровое поле в фото-режиме — более прозрачное */
+    body.photo-mode #game {
+        background: radial-gradient(circle at 50% 0%, rgba(42, 30, 92, 0.5) 0%, rgba(26, 26, 46, 0.7) 100%);
     }
 
     #basket {
@@ -356,12 +375,17 @@
         border: 2px solid rgba(255, 255, 255, 0.25);
         box-shadow: 0 25px 80px rgba(255, 100, 200, 0.3),
                     0 0 100px rgba(106, 48, 147, 0.3) inset;
-        transition: all 0.5s ease;
+        transition: all 0.6s ease;
     }
 
+    /* === ФОН ПОЗДРАВЛЕНИЯ МЕНЯЕТСЯ В ФОТО-РЕЖИМЕ === */
     body.photo-mode .greeting {
-        background: rgba(0, 0, 0, 0.6);
-        border-color: rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7),
+                    0 0 80px rgba(255, 255, 255, 0.15) inset;
     }
 
     .greeting.show { display: block; animation: greetingAppear 1s ease; }
@@ -419,6 +443,13 @@
         flex: 1 1 220px;
         max-width: 260px;
         transition: all 0.3s ease;
+    }
+
+    body.photo-mode .wish-item {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-color: rgba(255, 255, 255, 0.4);
     }
 
     .wish-item:hover {
@@ -981,17 +1012,14 @@ secretBtn.addEventListener('click', () => {
     funModeActive = !funModeActive;
 
     if (funModeActive) {
-        // Включаем фото-режим
         document.body.classList.add('photo-mode');
         secretBtn.classList.add('active');
         secretHint.classList.add('hidden');
 
-        // Показываем надпись "Весёлый мод ON"
         funBanner.classList.remove('show');
-        void funBanner.offsetWidth; // сброс анимации
+        void funBanner.offsetWidth;
         funBanner.classList.add('show');
 
-        // Взрыв конфетти по всему экрану
         for (let i = 0; i < 4; i++) {
             setTimeout(() => {
                 createConfettiBurst(
@@ -1004,7 +1032,6 @@ secretBtn.addEventListener('click', () => {
         createConfettiRain(120);
         spawnBalloons(10);
     } else {
-        // Выключаем фото-режим
         document.body.classList.remove('photo-mode');
         secretBtn.classList.remove('active');
         secretHint.classList.remove('hidden');
@@ -1012,7 +1039,6 @@ secretBtn.addEventListener('click', () => {
     }
 });
 
-// Клик на подсказку = клик на кнопку
 secretHint.addEventListener('click', () => secretBtn.click());
 </script>
 </body>
