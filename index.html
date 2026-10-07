@@ -22,6 +22,43 @@
         overflow-x: hidden;
         position: relative;
         padding: 90px 20px 20px;
+        transition: background 0.8s ease;
+    }
+
+    /* === ФОТО-ФОН (активируется кнопкой ✨) === */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url('niki.jpg'); /* ← ТВОЁ ФОТО */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0;
+        transition: opacity 1s ease;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    body.photo-mode::before {
+        opacity: 1;
+    }
+
+    /* Когда включён фото-режим — затемняем фон для читаемости */
+    body.photo-mode::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(2px);
+        z-index: 0;
+        pointer-events: none;
+        animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
     @keyframes gradientShift {
@@ -35,10 +72,96 @@
         width: 100%; height: 100%;
         pointer-events: none;
     }
-    #balloons-canvas { z-index: 0; }
-    #confetti-canvas { z-index: 1; }
+    #balloons-canvas { z-index: 1; }
+    #confetti-canvas { z-index: 2; }
 
-    /* ===== ОБРАТНЫЙ ОТСЧЁТ ===== */
+    /* === ПОДПИСЬ НАД СЕКРЕТНОЙ КНОПКОЙ === */
+    .secret-hint {
+        position: fixed;
+        bottom: 80px;
+        right: 10px;
+        z-index: 30;
+        background: linear-gradient(45deg, #FFD93D, #FF6FB5);
+        color: #1a1a2e;
+        font-weight: bold;
+        font-size: 0.85em;
+        padding: 10px 16px;
+        border-radius: 25px;
+        box-shadow: 0 8px 25px rgba(255, 217, 61, 0.6);
+        animation: pulseHint 2s infinite;
+        cursor: pointer;
+        max-width: 200px;
+        text-align: center;
+        line-height: 1.3;
+        border: 2px solid rgba(255,255,255,0.6);
+        transition: all 0.3s ease;
+    }
+
+    .secret-hint::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        right: 30px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 10px solid #FF6FB5;
+        animation: pulseHint 2s infinite;
+    }
+
+    .secret-hint:hover {
+        transform: scale(1.05);
+    }
+
+    .secret-hint.hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.5);
+    }
+
+    @keyframes pulseHint {
+        0%, 100% { transform: scale(1); box-shadow: 0 8px 25px rgba(255, 217, 61, 0.6); }
+        50% { transform: scale(1.06); box-shadow: 0 12px 35px rgba(255, 217, 61, 0.9); }
+    }
+
+    /* === НАДПИСЬ "ВЕСЁЛЫЙ МОД ON" === */
+    .fun-mode-banner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        z-index: 50;
+        font-size: clamp(2em, 7vw, 4em);
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        background: linear-gradient(45deg, #FFD93D, #FF6FB5, #4D96FF, #6BCB77);
+        background-size: 300% 300%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
+        filter: drop-shadow(0 5px 20px rgba(0,0,0,0.6));
+        pointer-events: none;
+        opacity: 0;
+        white-space: nowrap;
+        animation: gradientShift 2s ease infinite;
+    }
+
+    .fun-mode-banner.show {
+        animation: bannerPop 2.5s ease forwards, gradientShift 2s ease infinite;
+    }
+
+    @keyframes bannerPop {
+        0% { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; }
+        30% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; }
+        50% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        85% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 0; }
+    }
+
+    /* === ОБРАТНЫЙ ОТСЧЁТ === */
     .countdown {
         position: fixed;
         top: 15px; left: 50%;
@@ -51,6 +174,12 @@
         border-radius: 20px;
         padding: 12px 22px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transition: all 0.5s ease;
+    }
+
+    body.photo-mode .countdown {
+        background: rgba(0, 0, 0, 0.5);
+        border-color: rgba(255, 255, 255, 0.4);
     }
 
     .countdown-title {
@@ -92,7 +221,7 @@
         50% { transform: scale(1.05); }
     }
 
-    /* ===== КОНТЕНТ ===== */
+    /* === КОНТЕНТ === */
     .content {
         position: relative;
         z-index: 10;
@@ -118,10 +247,9 @@
         margin-bottom: 25px;
         opacity: 0.95;
         text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        transition: all 0.5s ease;
     }
 
-    /* ===== ИГРА ===== */
+    /* === ИГРА === */
     .game-wrapper {
         margin: 20px auto;
         max-width: 660px;
@@ -135,7 +263,11 @@
         transition: opacity 0.6s ease, transform 0.6s ease;
     }
 
-    /* Полное исчезновение игры */
+    body.photo-mode .game-wrapper {
+        background: rgba(0, 0, 0, 0.65);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
     .game-wrapper.hide {
         opacity: 0;
         transform: scale(0.7) translateY(-30px);
@@ -154,11 +286,7 @@
         padding: 0 5px;
     }
 
-    .game-title {
-        font-size: 1.1em;
-        font-weight: bold;
-        opacity: 0.95;
-    }
+    .game-title { font-size: 1.1em; font-weight: bold; opacity: 0.95; }
 
     .game-score {
         font-size: 1.1em;
@@ -221,7 +349,7 @@
 
     .win-message.show { display: block; }
 
-    /* ===== БОЛЬШОЕ ПОЗДРАВЛЕНИЕ ===== */
+    /* === БОЛЬШОЕ ПОЗДРАВЛЕНИЕ === */
     .greeting {
         display: none;
         margin-top: 30px;
@@ -233,10 +361,15 @@
         border: 2px solid rgba(255, 255, 255, 0.25);
         box-shadow: 0 25px 80px rgba(255, 100, 200, 0.3),
                     0 0 100px rgba(106, 48, 147, 0.3) inset;
-        animation: greetingAppear 1s ease;
+        transition: all 0.5s ease;
     }
 
-    .greeting.show { display: block; }
+    body.photo-mode .greeting {
+        background: rgba(0, 0, 0, 0.6);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .greeting.show { display: block; animation: greetingAppear 1s ease; }
 
     @keyframes greetingAppear {
         from { opacity: 0; transform: scale(0.8) translateY(30px); }
@@ -260,7 +393,6 @@
         background-clip: text;
         -webkit-text-fill-color: transparent;
         animation: gradientShift 3s ease infinite;
-        text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
         line-height: 1.2;
     }
 
@@ -272,10 +404,7 @@
         text-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
 
-    .greeting-text strong {
-        color: #FFD93D;
-        font-size: 1.1em;
-    }
+    .greeting-text strong { color: #FFD93D; font-size: 1.1em; }
 
     .greeting-wishes {
         display: flex;
@@ -303,13 +432,9 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
 
-    .wish-emoji {
-        font-size: 1.6em;
-        display: block;
-        margin-bottom: 8px;
-    }
+    .wish-emoji { font-size: 1.6em; display: block; margin-bottom: 8px; }
 
-    /* ===== КНОПКА ПОЗДРАВЛЕНИЯ ===== */
+    /* === КНОПКА === */
     .btn {
         background: linear-gradient(45deg, #ff6b6b, #ff8e53, #ff6fb5);
         background-size: 200% 200%;
@@ -337,53 +462,53 @@
         100% { transform: scale(1); opacity: 1; }
     }
 
-    .btn:hover {
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 20px 50px rgba(255, 107, 107, 0.8);
-    }
+    .btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 20px 50px rgba(255, 107, 107, 0.8); }
 
-    .emoji {
-        display: inline-block;
-        animation: spin 3s linear infinite;
-    }
+    .emoji { display: inline-block; animation: spin 3s linear infinite; }
 
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
 
-    /* ===== СЕКРЕТНАЯ КНОПКА ===== */
+    /* === СЕКРЕТНАЯ КНОПКА === */
     .secret-btn {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: 45px;
-        height: 45px;
+        width: 55px;
+        height: 55px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(45deg, #9D4EDD, #4D96FF);
+        border: 2px solid rgba(255, 255, 255, 0.4);
         color: white;
-        font-size: 1.3em;
+        font-size: 1.5em;
         cursor: pointer;
         z-index: 30;
         transition: all 0.4s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        animation: twinkle 3s infinite;
+        animation: twinkle 2s infinite;
+        box-shadow: 0 8px 25px rgba(157, 78, 221, 0.5);
     }
 
     @keyframes twinkle {
-        0%, 100% { opacity: 0.4; transform: scale(1); }
-        50% { opacity: 0.9; transform: scale(1.1); }
+        0%, 100% { opacity: 0.7; transform: scale(1) rotate(0deg); box-shadow: 0 8px 25px rgba(157, 78, 221, 0.5); }
+        50% { opacity: 1; transform: scale(1.15) rotate(15deg); box-shadow: 0 12px 35px rgba(157, 78, 221, 0.9); }
     }
 
     .secret-btn:hover {
-        background: rgba(255, 255, 255, 0.25);
+        background: linear-gradient(45deg, #FFD93D, #FF6FB5);
         transform: rotate(180deg) scale(1.2);
     }
 
-    /* ===== МЕМ-ВСПЛЫШКА ===== */
+    .secret-btn.active {
+        background: linear-gradient(45deg, #6BCB77, #4D96FF);
+        animation: none;
+    }
+
+    /* === МЕМ === */
     .meme-overlay {
         position: fixed;
         inset: 0;
@@ -415,30 +540,16 @@
 
     .meme-overlay.show .meme-card { transform: scale(1) rotate(0deg); }
 
-    .meme-emoji {
-        font-size: 5em;
-        margin-bottom: 15px;
-        animation: wiggle 1s infinite;
-    }
+    .meme-emoji { font-size: 5em; margin-bottom: 15px; animation: wiggle 1s infinite; }
 
     @keyframes wiggle {
         0%, 100% { transform: rotate(-5deg); }
         50% { transform: rotate(5deg); }
     }
 
-    .meme-title {
-        font-size: 1.5em;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #6a3093;
-    }
+    .meme-title { font-size: 1.5em; font-weight: bold; margin-bottom: 10px; color: #6a3093; }
 
-    .meme-text {
-        font-size: 1.1em;
-        line-height: 1.5;
-        color: #444;
-        margin-bottom: 20px;
-    }
+    .meme-text { font-size: 1.1em; line-height: 1.5; color: #444; margin-bottom: 20px; }
 
     .meme-close {
         background: linear-gradient(45deg, #6a3093, #4D96FF);
@@ -464,6 +575,8 @@
         .gift { font-size: 30px; }
         .greeting { padding: 25px 18px; }
         .wish-item { flex: 1 1 100%; max-width: 100%; }
+        .secret-hint { bottom: 85px; right: 5px; font-size: 0.75em; padding: 8px 12px; max-width: 150px; }
+        .secret-btn { width: 50px; height: 50px; font-size: 1.3em; }
     }
 </style>
 </head>
@@ -472,7 +585,6 @@
     <canvas id="balloons-canvas"></canvas>
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- Обратный отсчёт -->
     <div class="countdown" id="countdown">
         <div class="countdown-title" id="countdownTitle">До дня рождения осталось:</div>
         <div class="countdown-timer" id="countdownTimer">
@@ -501,7 +613,6 @@
             Чтобы увидеть поздравление — пройди игру! 🎮
         </p>
 
-        <!-- ИГРА -->
         <div class="game-wrapper" id="gameWrapper">
             <div class="game-header">
                 <div class="game-title">🎁 Поймай 10 подарков!</div>
@@ -514,41 +625,48 @@
             <div class="win-message" id="winMessage">🎉 Уровень пройден! Ты настоящий охотник за подарками! 🏆</div>
         </div>
 
-        <!-- БОЛЬШОЕ ПОЗДРАВЛЕНИЕ (появляется после победы) -->
         <div class="greeting" id="greeting">
             <div class="greeting-emoji">🎂🎉🎈</div>
             <div class="greeting-title">С ДНЁМ РОЖДЕНИЯ, НИКИТА!</div>
             <div class="greeting-text">
                 Сегодня твой день, и я хочу сказать:<br>
-                <strong>Ты - самый классный брат на свете!</strong> 💙<br>
+                <strong>ты — лучший брат на свете!</strong> 💙<br>
                 Спасибо, что ты есть.
             </div>
             <div class="greeting-wishes">
                 <div class="wish-item">
                     <span class="wish-emoji">🚀</span>
-                      Живи так, чтобы не жалеть
+                    Больших целей, крутых историй<br>и поводов собой гордиться
                 </div>
                 <div class="wish-item">
                     <span class="wish-emoji">💪</span>
-                    Крепкого здоровья тебе
+                    Будь здоров, держись уверенно<br>и не сдавайся, что бы ни случилось
                 </div>
                 <div class="wish-item">
                     <span class="wish-emoji">🎯</span>
-                    Пусть всё, что ты загадал, — сбудется
+                    Чтобы всё, о чём мечтаешь,<br>сбывалось — и даже больше
                 </div>
                 <div class="wish-item">
                     <span class="wish-emoji">✨</span>
-                    Будь уверенным в своих силах
+                    Пусть каждый день будет поводом<br>улыбнуться и порадоваться
                 </div>
             </div>
             <button class="btn" id="celebrateBtn">Нажми меня! 🎉</button>
         </div>
     </div>
 
+    <!-- Подсказка над секретной кнопкой -->
+    <div class="secret-hint" id="secretHint">
+        Нажми на ✨,<br>чтобы увидеть сюрприз!
+    </div>
+
     <!-- Секретная кнопка -->
     <button class="secret-btn" id="secretBtn" title="Секрет...">✨</button>
 
-    <!-- Мем-всплышка -->
+    <!-- Надпись "Весёлый мод ON" -->
+    <div class="fun-mode-banner" id="funBanner">🎉 Весёлый мод: ON 🎉</div>
+
+    <!-- Мем -->
     <div class="meme-overlay" id="memeOverlay">
         <div class="meme-card">
             <div class="meme-emoji" id="memeEmoji">🤣</div>
@@ -560,7 +678,6 @@
 
 <script>
 /* ==================== НАСТРОЙКИ ==================== */
-// 8 октября 2026, 00:00 (месяц с 0! Октябрь = 9)
 const BIRTHDAY = new Date(2026, 9, 8, 0, 0);
 
 /* ==================== КОНФЕТТИ ==================== */
@@ -791,7 +908,7 @@ function updateCountdown() {
 updateCountdown();
 setInterval(updateCountdown, 1000);
 
-/* ==================== ИГРА "ПОЙМАЙ ПОДАРОК" ==================== */
+/* ==================== ИГРА ==================== */
 const basket = document.getElementById('basket');
 const game = document.getElementById('game');
 const scoreEl = document.getElementById('score');
@@ -816,14 +933,8 @@ function moveBasket(clientX) {
 }
 
 game.addEventListener('mousemove', e => moveBasket(e.clientX));
-game.addEventListener('touchmove', e => {
-    e.preventDefault();
-    moveBasket(e.touches[0].clientX);
-}, { passive: false });
-game.addEventListener('touchstart', e => {
-    e.preventDefault();
-    moveBasket(e.touches[0].clientX);
-}, { passive: false });
+game.addEventListener('touchmove', e => { e.preventDefault(); moveBasket(e.touches[0].clientX); }, { passive: false });
+game.addEventListener('touchstart', e => { e.preventDefault(); moveBasket(e.touches[0].clientX); }, { passive: false });
 
 const spawnInterval = setInterval(() => {
     if (!gameActive || gameWon) return;
@@ -869,9 +980,7 @@ function spawnGift() {
             setTimeout(() => gift.remove(), 300);
             clearInterval(fall);
 
-            const burstX = giftRect.left + giftRect.width / 2;
-            const burstY = giftRect.top + giftRect.height / 2;
-            createConfettiBurst(burstX, burstY, 15);
+            createConfettiBurst(giftRect.left + giftRect.width / 2, giftRect.top + giftRect.height / 2, 15);
 
             if (score >= WIN_SCORE) winGame();
             return;
@@ -889,7 +998,6 @@ function winGame() {
     gameActive = false;
     clearInterval(spawnInterval);
 
-    // Убираем оставшиеся подарки
     document.querySelectorAll('.gift').forEach(g => {
         g.style.transition = 'all 0.5s';
         g.style.opacity = '0';
@@ -897,41 +1005,23 @@ function winGame() {
         setTimeout(() => g.remove(), 500);
     });
 
-    // Показываем победное сообщение
     winMessage.classList.add('show');
 
-    // Через 1.5 сек — полностью скрываем игру
     setTimeout(() => {
         gameWrapper.classList.add('hide');
-
-        // И полностью убираем из потока через 0.7 сек (после анимации)
-        setTimeout(() => {
-            gameWrapper.remove();
-        }, 700);
-
-        // Обновляем подзаголовок
+        setTimeout(() => gameWrapper.remove(), 700);
         subtitle.textContent = '🎉 Игра пройдена! А вот и твоё поздравление: 🎉';
-
-        // Показываем большое поздравление
         greeting.classList.add('show');
 
-        // Большой взрыв конфетти
         for (let i = 0; i < 6; i++) {
             setTimeout(() => {
-                createConfettiBurst(
-                    Math.random() * window.innerWidth,
-                    Math.random() * window.innerHeight * 0.6,
-                    70
-                );
+                createConfettiBurst(Math.random() * window.innerWidth, Math.random() * window.innerHeight * 0.6, 70);
             }, i * 180);
         }
         createConfettiRain(250);
         spawnBalloons(15);
 
-        // Прокручиваем к поздравлению
-        setTimeout(() => {
-            greeting.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 400);
+        setTimeout(() => greeting.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
     }, 1500);
 }
 
@@ -950,8 +1040,53 @@ celebrateBtn.addEventListener('click', () => {
     else if (clicks === 5) celebrateBtn.textContent = 'Хватит! 😄';
 });
 
-/* ==================== СЕКРЕТНАЯ КНОПКА С МЕМОМ ==================== */
+/* ==================== СЕКРЕТНАЯ КНОПКА: ФОТО + ВЕСЁЛЫЙ МОД ==================== */
 const secretBtn = document.getElementById('secretBtn');
+const secretHint = document.getElementById('secretHint');
+const funBanner = document.getElementById('funBanner');
+let funModeActive = false;
+
+secretBtn.addEventListener('click', () => {
+    funModeActive = !funModeActive;
+
+    if (funModeActive) {
+        // Включаем фото-режим
+        document.body.classList.add('photo-mode');
+        secretBtn.classList.add('active');
+        secretHint.classList.add('hidden');
+
+        // Показываем надпись "Весёлый мод ON"
+        funBanner.classList.remove('show');
+        void funBanner.offsetWidth; // сброс анимации
+        funBanner.classList.add('show');
+
+        // Взрыв конфетти по всему экрану
+        for (let i = 0; i < 4; i++) {
+            setTimeout(() => {
+                createConfettiBurst(
+                    Math.random() * window.innerWidth,
+                    Math.random() * window.innerHeight * 0.7,
+                    80
+                );
+            }, i * 150);
+        }
+        createConfettiRain(120);
+        spawnBalloons(10);
+    } else {
+        // Выключаем фото-режим
+        document.body.classList.remove('photo-mode');
+        secretBtn.classList.remove('active');
+        secretHint.classList.remove('hidden');
+        funBanner.classList.remove('show');
+    }
+});
+
+// При клике на подсказку — тоже включаем режим
+secretHint.addEventListener('click', () => {
+    secretBtn.click();
+});
+
+/* ==================== МЕМ (не мешает, открывается долгим нажатием) ==================== */
 const memeOverlay = document.getElementById('memeOverlay');
 const memeEmoji = document.getElementById('memeEmoji');
 const memeTitle = document.getElementById('memeTitle');
@@ -967,22 +1102,28 @@ const memes = [
 ];
 
 let lastMemeIndex = -1;
-function showRandomMeme() {
-    let index;
-    do { index = Math.floor(Math.random() * memes.length); }
-    while (index === lastMemeIndex && memes.length > 1);
-    lastMemeIndex = index;
+let pressTimer = null;
 
-    const meme = memes[index];
-    memeEmoji.textContent = meme.emoji;
-    memeTitle.textContent = meme.title;
-    memeText.textContent = meme.text;
-    memeOverlay.classList.add('show');
-    createConfettiBurst(window.innerWidth / 2, window.innerHeight / 2, 60);
-}
+// Долгое нажатие на секретную кнопку = показать мем
+secretBtn.addEventListener('mousedown', () => {
+    pressTimer = setTimeout(() => {
+        let index;
+        do { index = Math.floor(Math.random() * memes.length); }
+        while (index === lastMemeIndex && memes.length > 1);
+        lastMemeIndex = index;
+        const meme = memes[index];
+        memeEmoji.textContent = meme.emoji;
+        memeTitle.textContent = meme.title;
+        memeText.textContent = meme.text;
+        memeOverlay.classList.add('show');
+        createConfettiBurst(window.innerWidth / 2, window.innerHeight / 2, 60);
+    }, 700);
+});
+
+secretBtn.addEventListener('mouseup', () => clearTimeout(pressTimer));
+secretBtn.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
 function closeMeme() { memeOverlay.classList.remove('show'); }
-
-secretBtn.addEventListener('click', showRandomMeme);
 memeClose.addEventListener('click', closeMeme);
 memeOverlay.addEventListener('click', e => { if (e.target === memeOverlay) closeMeme(); });
 </script>
