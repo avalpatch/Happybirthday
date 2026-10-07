@@ -25,13 +25,12 @@
         transition: background 0.8s ease;
     }
 
-    /* === ФОТО-ФОН: растягивается, но НЕ полностью === */
-    /* Слой 1: размытая заливка (заполняет пустоты по краям) */
+    /* === ФОТО-ФОН: два слоя === */
     body::before {
         content: '';
         position: fixed;
         inset: 0;
-        background-image: url('niki.jpg'); /* ← ТВОЁ ФОТО */
+        background-image: url('niki.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -43,13 +42,12 @@
         transform: scale(1.1);
     }
 
-    /* Слой 2: само фото целиком, по центру, без обрезки */
     body::after {
         content: '';
         position: fixed;
         inset: 0;
-        background-image: url('niki.jpg'); /* ← ТВОЁ ФОТО */
-        background-size: contain;      /* ← фото вписывается целиком */
+        background-image: url('niki.jpg');
+        background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
         opacity: 0;
@@ -74,53 +72,6 @@
     }
     #balloons-canvas { z-index: 1; }
     #confetti-canvas { z-index: 2; }
-
-    /* === ПОДПИСЬ НАД СЕКРЕТНОЙ КНОПКОЙ === */
-    .secret-hint {
-        position: fixed;
-        bottom: 85px;
-        right: 10px;
-        z-index: 30;
-        background: linear-gradient(45deg, #FFD93D, #FF6FB5);
-        color: #1a1a2e;
-        font-weight: bold;
-        font-size: 0.85em;
-        padding: 10px 16px;
-        border-radius: 25px;
-        box-shadow: 0 8px 25px rgba(255, 217, 61, 0.6);
-        animation: pulseHint 2s infinite;
-        cursor: pointer;
-        max-width: 200px;
-        text-align: center;
-        line-height: 1.3;
-        border: 2px solid rgba(255,255,255,0.6);
-        transition: all 0.3s ease;
-    }
-
-    .secret-hint::after {
-        content: '';
-        position: absolute;
-        bottom: -8px;
-        right: 30px;
-        width: 0;
-        height: 0;
-        border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        border-top: 10px solid #FF6FB5;
-    }
-
-    .secret-hint:hover { transform: scale(1.05); }
-
-    .secret-hint.hidden {
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.5);
-    }
-
-    @keyframes pulseHint {
-        0%, 100% { transform: scale(1); box-shadow: 0 8px 25px rgba(255, 217, 61, 0.6); }
-        50% { transform: scale(1.06); box-shadow: 0 12px 35px rgba(255, 217, 61, 0.9); }
-    }
 
     /* === НАДПИСЬ "ВЕСЁЛЫЙ МОД ON" === */
     .fun-mode-banner {
@@ -174,7 +125,6 @@
         transition: all 0.6s ease;
     }
 
-    /* === ФОН ВИДЖЕТОВ МЕНЯЕТСЯ В ФОТО-РЕЖИМЕ === */
     body.photo-mode .countdown {
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(25px);
@@ -266,7 +216,6 @@
         transition: all 0.6s ease;
     }
 
-    /* === ФОН ВИДЖЕТА ИГРЫ МЕНЯЕТСЯ В ФОТО-РЕЖИМЕ === */
     body.photo-mode .game-wrapper {
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(25px);
@@ -317,7 +266,6 @@
         transition: background 0.6s ease;
     }
 
-    /* Игровое поле в фото-режиме — более прозрачное */
     body.photo-mode #game {
         background: radial-gradient(circle at 50% 0%, rgba(42, 30, 92, 0.5) 0%, rgba(26, 26, 46, 0.7) 100%);
     }
@@ -378,7 +326,6 @@
         transition: all 0.6s ease;
     }
 
-    /* === ФОН ПОЗДРАВЛЕНИЯ МЕНЯЕТСЯ В ФОТО-РЕЖИМЕ === */
     body.photo-mode .greeting {
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(25px);
@@ -497,39 +444,112 @@
         to { transform: rotate(360deg); }
     }
 
-    /* === СЕКРЕТНАЯ КНОПКА === */
-    .secret-btn {
+    /* ============================================= */
+    /* === КНОПКА ПЕРЕКЛЮЧЕНИЯ ФОНА (скрыта до победы) === */
+    /* ============================================= */
+    .bg-toggle-wrapper {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: 55px;
-        height: 55px;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(20px) scale(0.7);
+        pointer-events: none;
+        transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    .bg-toggle-wrapper.visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    /* Подсказка над кнопкой */
+    .bg-hint {
+        background: linear-gradient(45deg, #FFD93D, #FF6FB5);
+        color: #1a1a2e;
+        font-weight: bold;
+        font-size: 0.85em;
+        padding: 10px 16px;
+        border-radius: 25px;
+        box-shadow: 0 8px 25px rgba(255, 217, 61, 0.6);
+        animation: pulseHint 2s infinite;
+        max-width: 220px;
+        text-align: center;
+        line-height: 1.3;
+        border: 2px solid rgba(255,255,255,0.6);
+        position: relative;
+    }
+
+    .bg-hint::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        right: 30px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 10px solid #FF6FB5;
+    }
+
+    @keyframes pulseHint {
+        0%, 100% { transform: scale(1); box-shadow: 0 8px 25px rgba(255, 217, 61, 0.6); }
+        50% { transform: scale(1.06); box-shadow: 0 12px 35px rgba(255, 217, 61, 0.9); }
+    }
+
+    /* Сама кнопка — круглая, с иконкой */
+    .bg-toggle-btn {
+        width: 70px;
+        height: 70px;
         border-radius: 50%;
         background: linear-gradient(45deg, #9D4EDD, #4D96FF);
-        border: 2px solid rgba(255, 255, 255, 0.4);
+        border: 3px solid rgba(255, 255, 255, 0.5);
         color: white;
-        font-size: 1.5em;
+        font-size: 1.8em;
         cursor: pointer;
-        z-index: 30;
         transition: all 0.4s ease;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 10px 30px rgba(157, 78, 221, 0.6);
         animation: twinkle 2s infinite;
-        box-shadow: 0 8px 25px rgba(157, 78, 221, 0.5);
+        position: relative;
     }
+
+    .bg-toggle-btn::before {
+        content: '🖼️';
+        position: absolute;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .bg-toggle-btn::after {
+        content: '🚫';
+        position: absolute;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    /* Когда фото включено — иконка меняется */
+    body.photo-mode .bg-toggle-btn::before { opacity: 0; }
+    body.photo-mode .bg-toggle-btn::after { opacity: 1; }
 
     @keyframes twinkle {
-        0%, 100% { opacity: 0.7; transform: scale(1) rotate(0deg); box-shadow: 0 8px 25px rgba(157, 78, 221, 0.5); }
-        50% { opacity: 1; transform: scale(1.15) rotate(15deg); box-shadow: 0 12px 35px rgba(157, 78, 221, 0.9); }
+        0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(157, 78, 221, 0.6); }
+        50% { transform: scale(1.08); box-shadow: 0 15px 40px rgba(157, 78, 221, 0.9); }
     }
 
-    .secret-btn:hover {
+    .bg-toggle-btn:hover {
         background: linear-gradient(45deg, #FFD93D, #FF6FB5);
-        transform: rotate(180deg) scale(1.2);
+        transform: rotate(180deg) scale(1.15);
     }
 
-    .secret-btn.active {
+    body.photo-mode .bg-toggle-btn {
         background: linear-gradient(45deg, #6BCB77, #4D96FF);
         animation: none;
     }
@@ -544,8 +564,9 @@
         .gift { font-size: 30px; }
         .greeting { padding: 25px 18px; }
         .wish-item { flex: 1 1 100%; max-width: 100%; }
-        .secret-hint { bottom: 85px; right: 5px; font-size: 0.75em; padding: 8px 12px; max-width: 150px; }
-        .secret-btn { width: 50px; height: 50px; font-size: 1.3em; }
+        .bg-toggle-wrapper { bottom: 15px; right: 10px; }
+        .bg-hint { font-size: 0.75em; padding: 8px 12px; max-width: 160px; }
+        .bg-toggle-btn { width: 60px; height: 60px; font-size: 1.5em; }
     }
 </style>
 </head>
@@ -627,13 +648,13 @@
         </div>
     </div>
 
-    <!-- Подсказка над секретной кнопкой -->
-    <div class="secret-hint" id="secretHint">
-        Нажми на ✨,<br>чтобы увидеть сюрприз!
+    <!-- Кнопка переключения фона (появляется только после победы в игре) -->
+    <div class="bg-toggle-wrapper" id="bgToggleWrapper">
+        <div class="bg-hint" id="bgHint">
+            Нажми, чтобы<br>включить фото! 📸
+        </div>
+        <button class="bg-toggle-btn" id="bgToggleBtn" title="Переключить фон"></button>
     </div>
-
-    <!-- Секретная кнопка -->
-    <button class="secret-btn" id="secretBtn" title="Секрет...">✨</button>
 
     <!-- Надпись "Весёлый мод ON" -->
     <div class="fun-mode-banner" id="funBanner">🎉 Весёлый мод: ON 🎉</div>
@@ -984,6 +1005,11 @@ function winGame() {
         spawnBalloons(15);
 
         setTimeout(() => greeting.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+
+        // ⭐ ПОКАЗЫВАЕМ КНОПКУ ПЕРЕКЛЮЧЕНИЯ ФОНА
+        setTimeout(() => {
+            bgToggleWrapper.classList.add('visible');
+        }, 1200);
     }, 1500);
 }
 
@@ -1002,24 +1028,27 @@ celebrateBtn.addEventListener('click', () => {
     else if (clicks === 5) celebrateBtn.textContent = 'Хватит! 😄';
 });
 
-/* ==================== СЕКРЕТНАЯ КНОПКА: ФОТО + ВЕСЁЛЫЙ МОД ==================== */
-const secretBtn = document.getElementById('secretBtn');
-const secretHint = document.getElementById('secretHint');
+/* ==================== КНОПКА ПЕРЕКЛЮЧЕНИЯ ФОНА ==================== */
+const bgToggleWrapper = document.getElementById('bgToggleWrapper');
+const bgToggleBtn = document.getElementById('bgToggleBtn');
+const bgHint = document.getElementById('bgHint');
 const funBanner = document.getElementById('funBanner');
-let funModeActive = false;
+let photoModeOn = false;
 
-secretBtn.addEventListener('click', () => {
-    funModeActive = !funModeActive;
+bgToggleBtn.addEventListener('click', () => {
+    photoModeOn = !photoModeOn;
 
-    if (funModeActive) {
+    if (photoModeOn) {
+        // ВКЛЮЧАЕМ ФОТО
         document.body.classList.add('photo-mode');
-        secretBtn.classList.add('active');
-        secretHint.classList.add('hidden');
+        bgHint.innerHTML = 'Нажми, чтобы<br>убрать фото 🚫';
 
+        // Показываем надпись "Весёлый мод ON"
         funBanner.classList.remove('show');
         void funBanner.offsetWidth;
         funBanner.classList.add('show');
 
+        // Конфетти и шарики
         for (let i = 0; i < 4; i++) {
             setTimeout(() => {
                 createConfettiBurst(
@@ -1032,14 +1061,15 @@ secretBtn.addEventListener('click', () => {
         createConfettiRain(120);
         spawnBalloons(10);
     } else {
+        // ВЫКЛЮЧАЕМ ФОТО
         document.body.classList.remove('photo-mode');
-        secretBtn.classList.remove('active');
-        secretHint.classList.remove('hidden');
+        bgHint.innerHTML = 'Нажми, чтобы<br>включить фото! 📸';
         funBanner.classList.remove('show');
     }
 });
 
-secretHint.addEventListener('click', () => secretBtn.click());
+// Клик на подсказку = клик на кнопку
+bgHint.addEventListener('click', () => bgToggleBtn.click());
 </script>
 </body>
 </html>
