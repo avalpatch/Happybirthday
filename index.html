@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>С Днём Рождения, Никита! 🎉</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6a3093 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 10s ease infinite;
+        color: white;
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        text-align: center;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow-x: hidden;
+        position: relative;
+        padding: 90px 20px 20px;
+    }
+
+    @keyframes gradientShift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    #confetti-canvas, #balloons-canvas {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+    }
+    #balloons-canvas { z-index: 0; }
+    #confetti-canvas { z-index: 1; }
+
+    /* ===== ОБРАТНЫЙ ОТСЧЁТ ===== */
+    .countdown {
+        position: fixed;
+        top: 15px; left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 20px;
+        padding: 12px 22px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .countdown-title {
+        font-size: 0.75em;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.85;
+        margin-bottom: 6px;
+    }
+
+    .countdown-timer { display: flex; gap: 14px; justify-content: center; }
+
+    .time-block { display: flex; flex-direction: column; min-width: 50px; }
+
+    .time-value {
+        font-size: 1.7em;
+        font-weight: bold;
+        line-height: 1;
+        text-shadow: 0 0 15px rgba(255,255,255,0.5);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .time-label {
+        font-size: 0.6em;
+        opacity: 0.7;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+
+    .countdown-celebrate {
+        font-size: 1.2em;
+        font-weight: bold;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* ===== КОНТЕНТ ===== */
+    .content {
+        position: relative;
+        z-index: 10;
+        max-width: 820px;
+        width: 100%;
+    }
+
+    h1 {
+        font-size: clamp(1.8em, 5vw, 3em);
+        margin-bottom: 15px;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 100, 200, 0.4);
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .subtitle {
+        font-size: clamp(1em, 2.5vw, 1.3em);
+        line-height: 1.5;
+        margin-bottom: 25px;
+        opacity: 0.95;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        transition: all 0.5s ease;
+    }
+
+    /* ===== ИГРА ===== */
+    .game-wrapper {
+        margin: 20px auto;
+        max-width: 660px;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255,255,255,0.15);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    /* Полное исчезновение игры */
+    .game-wrapper.hide {
+        opacity: 0;
+        transform: scale(0.7) translateY(-30px);
+        pointer-events: none;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+    }
+
+    .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 0 5px;
+    }
+
+    .game-title {
+        font-size: 1.1em;
+        font-weight: bold;
+        opacity: 0.95;
+    }
+
+    .game-score {
+        font-size: 1.1em;
+        font-weight: bold;
+        background: linear-gradient(45deg, #FFD93D, #FFA45B);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    #game {
+        position: relative;
+        height: 400px;
+        background: radial-gradient(circle at 50% 0%, #2a1e5c 0%, #1a1a2e 100%);
+        border-radius: 18px;
+        overflow: hidden;
+        cursor: none;
+        user-select: none;
+        touch-action: none;
+    }
+
+    #basket {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 45px;
+        transition: left 0.05s linear;
+        will-change: left;
+        z-index: 5;
+        filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+    }
+
+    .gift {
+        position: absolute;
+        font-size: 35px;
+        top: -50px;
+        will-change: top;
+        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+    }
+
+    .game-hint {
+        margin-top: 12px;
+        font-size: 0.9em;
+        opacity: 0.7;
+        text-align: center;
+    }
+
+    .win-message {
+        display: none;
+        margin-top: 15px;
+        padding: 15px 20px;
+        background: linear-gradient(45deg, #6BCB77, #4D96FF);
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 1.1em;
+        animation: pulse 1.5s infinite;
+        box-shadow: 0 10px 30px rgba(107, 203, 119, 0.4);
+    }
+
+    .win-message.show { display: block; }
+
+    /* ===== БОЛЬШОЕ ПОЗДРАВЛЕНИЕ ===== */
+    .greeting {
+        display: none;
+        margin-top: 30px;
+        padding: 40px 30px;
+        background: linear-gradient(145deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 30px;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 25px 80px rgba(255, 100, 200, 0.3),
+                    0 0 100px rgba(106, 48, 147, 0.3) inset;
+        animation: greetingAppear 1s ease;
+    }
+
+    .greeting.show { display: block; }
+
+    @keyframes greetingAppear {
+        from { opacity: 0; transform: scale(0.8) translateY(30px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .greeting-emoji {
+        font-size: clamp(3em, 8vw, 5em);
+        margin-bottom: 15px;
+        display: inline-block;
+        animation: bounce 1.5s infinite;
+    }
+
+    .greeting-title {
+        font-size: clamp(1.8em, 5vw, 3em);
+        font-weight: bold;
+        margin-bottom: 25px;
+        background: linear-gradient(45deg, #FFD93D, #FF6FB5, #4D96FF);
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientShift 3s ease infinite;
+        text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+        line-height: 1.2;
+    }
+
+    .greeting-text {
+        font-size: clamp(1.1em, 3vw, 1.5em);
+        line-height: 1.8;
+        margin-bottom: 30px;
+        opacity: 0.98;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .greeting-text strong {
+        color: #FFD93D;
+        font-size: 1.1em;
+    }
+
+    .greeting-wishes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 25px;
+    }
+
+    .wish-item {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 15px 20px;
+        font-size: clamp(0.95em, 2vw, 1.15em);
+        line-height: 1.4;
+        flex: 1 1 220px;
+        max-width: 260px;
+        transition: all 0.3s ease;
+    }
+
+    .wish-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .wish-emoji {
+        font-size: 1.6em;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    /* ===== КНОПКА ПОЗДРАВЛЕНИЯ ===== */
+    .btn {
+        background: linear-gradient(45deg, #ff6b6b, #ff8e53, #ff6fb5);
+        background-size: 200% 200%;
+        border: none;
+        color: white;
+        padding: 20px 55px;
+        font-size: 1.3em;
+        font-weight: bold;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-top: 25px;
+        display: none;
+        animation: gradientShift 3s ease infinite;
+    }
+
+    .btn.show { display: inline-block; animation: popIn 0.6s ease, gradientShift 3s ease infinite; }
+
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        70% { transform: scale(1.15); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 20px 50px rgba(255, 107, 107, 0.8);
+    }
+
+    .emoji {
+        display: inline-block;
+        animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* ===== СЕКРЕТНАЯ КНОПКА ===== */
+    .secret-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 1.3em;
+        cursor: pointer;
+        z-index: 30;
+        transition: all 0.4s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: twinkle 3s infinite;
+    }
+
+    @keyframes twinkle {
+        0%, 100% { opacity: 0.4; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(1.1); }
+    }
+
+    .secret-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: rotate(180deg) scale(1.2);
+    }
+
+    /* ===== МЕМ-ВСПЛЫШКА ===== */
+    .meme-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .meme-overlay.show { display: flex; opacity: 1; }
+
+    .meme-card {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        color: #222;
+        border-radius: 24px;
+        padding: 30px;
+        max-width: 480px;
+        width: 100%;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+        transform: scale(0.5) rotate(-10deg);
+        transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        text-align: center;
+    }
+
+    .meme-overlay.show .meme-card { transform: scale(1) rotate(0deg); }
+
+    .meme-emoji {
+        font-size: 5em;
+        margin-bottom: 15px;
+        animation: wiggle 1s infinite;
+    }
+
+    @keyframes wiggle {
+        0%, 100% { transform: rotate(-5deg); }
+        50% { transform: rotate(5deg); }
+    }
+
+    .meme-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #6a3093;
+    }
+
+    .meme-text {
+        font-size: 1.1em;
+        line-height: 1.5;
+        color: #444;
+        margin-bottom: 20px;
+    }
+
+    .meme-close {
+        background: linear-gradient(45deg, #6a3093, #4D96FF);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .meme-close:hover { transform: scale(1.05); }
+
+    @media (max-width: 500px) {
+        .countdown { padding: 8px 14px; top: 10px; }
+        .time-value { font-size: 1.3em; }
+        .time-block { min-width: 42px; }
+        .countdown-timer { gap: 8px; }
+        #game { height: 320px; }
+        #basket { font-size: 38px; }
+        .gift { font-size: 30px; }
+        .greeting { padding: 25px 18px; }
+        .wish-item { flex: 1 1 100%; max-width: 100%; }
+    }
+</style>
+</head>
+<body>
+
+    <canvas id="balloons-canvas"></canvas>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Обратный отсчёт -->
+    <div class="countdown" id="countdown">
+        <div class="countdown-title" id="countdownTitle">До дня рождения осталось:</div>
+        <div class="countdown-timer" id="countdownTimer">
+            <div class="time-block">
+                <div class="time-value" id="days">00</div>
+                <div class="time-label">дней</div>
+            </div>
+            <div class="time-block">
+                <div class="time-value" id="hours">00</div>
+                <div class="time-label">часов</div>
+            </div>
+            <div class="time-block">
+                <div class="time-value" id="minutes">00</div>
+                <div class="time-label">минут</div>
+            </div>
+            <div class="time-block">
+                <div class="time-value" id="seconds">00</div>
+                <div class="time-label">секунд</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h1>С Днём Рождения, Никита! <span class="emoji">🎂</span></h1>
+        <p class="subtitle" id="subtitle">
+            Чтобы увидеть поздравление — пройди игру! 🎮
+        </p>
+
+        <!-- ИГРА -->
+        <div class="game-wrapper" id="gameWrapper">
+            <div class="game-header">
+                <div class="game-title">🎁 Поймай 10 подарков!</div>
+                <div class="game-score">Счёт: <span id="score">0</span>/10</div>
+            </div>
+            <div id="game">
+                <div id="basket">🧺</div>
+            </div>
+            <div class="game-hint">Управляй корзинкой мышкой или пальцем 👆</div>
+            <div class="win-message" id="winMessage">🎉 Уровень пройден! Ты настоящий охотник за подарками! 🏆</div>
+        </div>
+
+        <!-- БОЛЬШОЕ ПОЗДРАВЛЕНИЕ (появляется после победы) -->
+        <div class="greeting" id="greeting">
+            <div class="greeting-emoji">🎂🎉🎈</div>
+            <div class="greeting-title">С ДНЁМ РОЖДЕНИЯ, НИКИТА!</div>
+            <div class="greeting-text">
+                Сегодня твой день, и я хочу сказать:<br>
+                <strong>ты — лучший брат на свете!</strong> 💙<br>
+                Спасибо, что ты есть.
+            </div>
+            <div class="greeting-wishes">
+                <div class="wish-item">
+                    <span class="wish-emoji">🚀</span>
+                    Крутых приключений и смелых мечтаний
+                </div>
+                <div class="wish-item">
+                    <span class="wish-emoji">💪</span>
+                    Здоровья, сил и отличного настроения
+                </div>
+                <div class="wish-item">
+                    <span class="wish-emoji">🎯</span>
+                    Пусть всё, что задумал, — сбудется
+                </div>
+                <div class="wish-item">
+                    <span class="wish-emoji">✨</span>
+                    Каждый день — как маленький праздник
+                </div>
+            </div>
+            <button class="btn" id="celebrateBtn">Нажми меня! 🎉</button>
+        </div>
+    </div>
+
+    <!-- Секретная кнопка -->
+    <button class="secret-btn" id="secretBtn" title="Секрет...">✨</button>
+
+    <!-- Мем-всплышка -->
+    <div class="meme-overlay" id="memeOverlay">
+        <div class="meme-card">
+            <div class="meme-emoji" id="memeEmoji">🤣</div>
+            <div class="meme-title" id="memeTitle">Секретное сообщение</div>
+            <div class="meme-text" id="memeText"></div>
+            <button class="meme-close" id="memeClose">Закрыть</button>
+        </div>
+    </div>
+
+<script>
+/* ==================== НАСТРОЙКИ ==================== */
+// 8 октября 2026, 00:00 (месяц с 0! Октябрь = 9)
+const BIRTHDAY = new Date(2026, 9, 8, 0, 0);
+
+/* ==================== КОНФЕТТИ ==================== */
+const confettiCanvas = document.getElementById('confetti-canvas');
+const ctx = confettiCanvas.getContext('2d');
+let confettiParticles = [];
+
+function resizeConfetti() {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+}
+resizeConfetti();
+window.addEventListener('resize', resizeConfetti);
+
+const confettiColors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF6FB5', '#FFA45B', '#9D4EDD'];
+
+class Confetti {
+    constructor(x, y) {
+        this.x = x; this.y = y;
+        this.size = Math.random() * 8 + 4;
+        this.color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        this.speedX = (Math.random() - 0.5) * 10;
+        this.speedY = Math.random() * -12 - 5;
+        this.gravity = 0.35;
+        this.rotation = Math.random() * 360;
+        this.rotationSpeed = (Math.random() - 0.5) * 15;
+        this.opacity = 1;
+        this.shape = Math.random() > 0.5 ? 'rect' : 'circle';
+    }
+    update() {
+        this.speedY += this.gravity;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.rotation += this.rotationSpeed;
+        this.opacity -= 0.008;
+        return this.opacity > 0 && this.y < confettiCanvas.height + 50;
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation * Math.PI / 180);
+        ctx.fillStyle = this.color;
+        if (this.shape === 'rect') {
+            ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size * 0.6);
+        } else {
+            ctx.beginPath();
+            ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+function createConfettiBurst(x, y, count = 80) {
+    for (let i = 0; i < count; i++) confettiParticles.push(new Confetti(x, y));
+}
+function createConfettiRain(count = 150) {
+    for (let i = 0; i < count; i++) {
+        const x = Math.random() * confettiCanvas.width;
+        const y = Math.random() * -confettiCanvas.height;
+        const p = new Confetti(x, y);
+        p.speedY = Math.random() * 3 + 1;
+        p.speedX = (Math.random() - 0.5) * 3;
+        confettiParticles.push(p);
+    }
+}
+function animateConfetti() {
+    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confettiParticles = confettiParticles.filter(p => {
+        const alive = p.update();
+        if (alive) p.draw();
+        return alive;
+    });
+    requestAnimationFrame(animateConfetti);
+}
+animateConfetti();
+
+/* ==================== ШАРИКИ ==================== */
+const balloonsCanvas = document.getElementById('balloons-canvas');
+const bCtx = balloonsCanvas.getContext('2d');
+let balloons = [];
+
+function resizeBalloons() {
+    balloonsCanvas.width = window.innerWidth;
+    balloonsCanvas.height = window.innerHeight;
+}
+resizeBalloons();
+window.addEventListener('resize', resizeBalloons);
+
+const balloonColors = [
+    { main: '#FF6B6B', dark: '#C44545' },
+    { main: '#FFD93D', dark: '#C4A32C' },
+    { main: '#6BCB77', dark: '#3F9B4A' },
+    { main: '#4D96FF', dark: '#2E6BC4' },
+    { main: '#FF6FB5', dark: '#C44A8A' },
+    { main: '#9D4EDD', dark: '#6A2EA0' },
+    { main: '#FFA45B', dark: '#C47A2C' }
+];
+
+class Balloon {
+    constructor() {
+        this.x = Math.random() * balloonsCanvas.width;
+        this.y = balloonsCanvas.height + Math.random() * 300 + 100;
+        this.size = Math.random() * 30 + 35;
+        const color = balloonColors[Math.floor(Math.random() * balloonColors.length)];
+        this.color = color.main;
+        this.darkColor = color.dark;
+        this.speedY = -(Math.random() * 1.5 + 0.8);
+        this.sway = Math.random() * Math.PI * 2;
+        this.swaySpeed = Math.random() * 0.02 + 0.01;
+        this.swayAmount = Math.random() * 1.5 + 0.5;
+        this.rotation = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.4 + 0.5;
+    }
+    update() {
+        this.y += this.speedY;
+        this.sway += this.swaySpeed;
+        this.x += Math.sin(this.sway) * this.swayAmount;
+        return this.y + this.size * 3 > -50;
+    }
+    draw() {
+        bCtx.save();
+        bCtx.globalAlpha = this.opacity;
+        bCtx.translate(this.x, this.y);
+        bCtx.rotate(this.rotation);
+        const w = this.size, h = this.size * 1.25;
+
+        bCtx.beginPath();
+        bCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+        bCtx.lineWidth = 1.5;
+        bCtx.moveTo(0, h / 2);
+        bCtx.quadraticCurveTo(10, h, 0, h + 60);
+        bCtx.stroke();
+
+        const gradient = bCtx.createRadialGradient(-w * 0.3, -h * 0.3, w * 0.1, 0, 0, h * 0.7);
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(0.3, this.color);
+        gradient.addColorStop(1, this.darkColor);
+
+        bCtx.beginPath();
+        bCtx.fillStyle = gradient;
+        bCtx.ellipse(0, 0, w * 0.7, h * 0.6, 0, 0, Math.PI * 2);
+        bCtx.fill();
+
+        bCtx.beginPath();
+        bCtx.fillStyle = this.darkColor;
+        bCtx.moveTo(-6, h * 0.55);
+        bCtx.lineTo(6, h * 0.55);
+        bCtx.lineTo(0, h * 0.68);
+        bCtx.closePath();
+        bCtx.fill();
+
+        bCtx.beginPath();
+        bCtx.fillStyle = 'rgba(255,255,255,0.5)';
+        bCtx.ellipse(-w * 0.25, -h * 0.25, w * 0.12, h * 0.18, -0.5, 0, Math.PI * 2);
+        bCtx.fill();
+
+        bCtx.restore();
+    }
+}
+
+function spawnBalloons(count = 10) {
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => balloons.push(new Balloon()), i * 400);
+    }
+}
+function animateBalloons() {
+    bCtx.clearRect(0, 0, balloonsCanvas.width, balloonsCanvas.height);
+    balloons = balloons.filter(b => {
+        const alive = b.update();
+        if (alive) b.draw();
+        return alive;
+    });
+    requestAnimationFrame(animateBalloons);
+}
+animateBalloons();
+spawnBalloons(8);
+setInterval(() => { if (balloons.length < 15) balloons.push(new Balloon()); }, 3000);
+
+window.addEventListener('load', () => setTimeout(() => createConfettiRain(120), 300));
+
+/* ==================== ОБРАТНЫЙ ОТСЧЁТ ==================== */
+const daysEl = document.getElementById('days');
+const hoursEl = document.getElementById('hours');
+const minutesEl = document.getElementById('minutes');
+const secondsEl = document.getElementById('seconds');
+const countdownTitle = document.getElementById('countdownTitle');
+const countdownTimer = document.getElementById('countdownTimer');
+const countdownBox = document.getElementById('countdown');
+
+let birthdayCelebrated = false;
+const pad = n => String(n).padStart(2, '0');
+
+function updateCountdown() {
+    const now = new Date();
+    let target = new Date(now.getFullYear(), BIRTHDAY.getMonth(), BIRTHDAY.getDate(), BIRTHDAY.getHours(), BIRTHDAY.getMinutes());
+    const isToday = now.getDate() === BIRTHDAY.getDate() && now.getMonth() === BIRTHDAY.getMonth();
+
+    if (isToday) {
+        countdownTitle.textContent = '';
+        countdownTimer.style.display = 'none';
+        countdownBox.querySelector('.countdown-celebrate')?.remove();
+        const celebrate = document.createElement('div');
+        celebrate.className = 'countdown-celebrate';
+        celebrate.textContent = '🎉 Сегодня День Рождения! 🎉';
+        countdownBox.appendChild(celebrate);
+        if (!birthdayCelebrated) {
+            birthdayCelebrated = true;
+            createConfettiRain(200);
+            spawnBalloons(15);
+        }
+        return;
+    }
+
+    if (target < now) {
+        target = new Date(now.getFullYear() + 1, BIRTHDAY.getMonth(), BIRTHDAY.getDate(), BIRTHDAY.getHours(), BIRTHDAY.getMinutes());
+    }
+
+    const diff = target - now;
+    if (diff <= 0) return;
+
+    daysEl.textContent = pad(Math.floor(diff / (1000 * 60 * 60 * 24)));
+    hoursEl.textContent = pad(Math.floor((diff / (1000 * 60 * 60)) % 24));
+    minutesEl.textContent = pad(Math.floor((diff / (1000 * 60)) % 60));
+    secondsEl.textContent = pad(Math.floor((diff / 1000) % 60));
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+/* ==================== ИГРА "ПОЙМАЙ ПОДАРОК" ==================== */
+const basket = document.getElementById('basket');
+const game = document.getElementById('game');
+const scoreEl = document.getElementById('score');
+const winMessage = document.getElementById('winMessage');
+const gameWrapper = document.getElementById('gameWrapper');
+const greeting = document.getElementById('greeting');
+const subtitle = document.getElementById('subtitle');
+
+let score = 0;
+let gameWon = false;
+let gameActive = true;
+const WIN_SCORE = 10;
+
+function moveBasket(clientX) {
+    if (!gameActive) return;
+    const rect = game.getBoundingClientRect();
+    let newLeft = clientX - rect.left - 22;
+    const maxLeft = rect.width - 55;
+    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+    basket.style.left = newLeft + 'px';
+    basket.style.transform = 'none';
+}
+
+game.addEventListener('mousemove', e => moveBasket(e.clientX));
+game.addEventListener('touchmove', e => {
+    e.preventDefault();
+    moveBasket(e.touches[0].clientX);
+}, { passive: false });
+game.addEventListener('touchstart', e => {
+    e.preventDefault();
+    moveBasket(e.touches[0].clientX);
+}, { passive: false });
+
+const spawnInterval = setInterval(() => {
+    if (!gameActive || gameWon) return;
+    spawnGift();
+}, 800);
+
+function spawnGift() {
+    const gift = document.createElement('div');
+    gift.className = 'gift';
+    const items = ['🎁', '🎁', '🎁', '🎈', '🍬', '⭐'];
+    gift.textContent = items[Math.floor(Math.random() * items.length)];
+
+    const rect = game.getBoundingClientRect();
+    const x = Math.random() * (rect.width - 40);
+    gift.style.left = x + 'px';
+    gift.style.top = '-50px';
+    game.appendChild(gift);
+
+    let y = -50;
+    const speed = 3 + Math.random() * 2;
+
+    const fall = setInterval(() => {
+        if (!gameActive) { clearInterval(fall); gift.remove(); return; }
+
+        y += speed;
+        gift.style.top = y + 'px';
+
+        const basketRect = basket.getBoundingClientRect();
+        const giftRect = gift.getBoundingClientRect();
+        const gameRect = game.getBoundingClientRect();
+
+        const bx = basketRect.left - gameRect.left + basketRect.width / 2;
+        const gx = giftRect.left - gameRect.left + giftRect.width / 2;
+        const gy = giftRect.top - gameRect.top + giftRect.height / 2;
+
+        if (gy > gameRect.height - 60 && Math.abs(bx - gx) < 45) {
+            score++;
+            scoreEl.textContent = score;
+            gift.textContent = '✨';
+            gift.style.transition = 'all 0.3s';
+            gift.style.transform = 'scale(1.5)';
+            gift.style.opacity = '0';
+            setTimeout(() => gift.remove(), 300);
+            clearInterval(fall);
+
+            const burstX = giftRect.left + giftRect.width / 2;
+            const burstY = giftRect.top + giftRect.height / 2;
+            createConfettiBurst(burstX, burstY, 15);
+
+            if (score >= WIN_SCORE) winGame();
+            return;
+        }
+
+        if (y > gameRect.height + 20) {
+            gift.remove();
+            clearInterval(fall);
+        }
+    }, 20);
+}
+
+function winGame() {
+    gameWon = true;
+    gameActive = false;
+    clearInterval(spawnInterval);
+
+    // Убираем оставшиеся подарки
+    document.querySelectorAll('.gift').forEach(g => {
+        g.style.transition = 'all 0.5s';
+        g.style.opacity = '0';
+        g.style.transform = 'translateY(100px) rotate(45deg)';
+        setTimeout(() => g.remove(), 500);
+    });
+
+    // Показываем победное сообщение
+    winMessage.classList.add('show');
+
+    // Через 1.5 сек — полностью скрываем игру
+    setTimeout(() => {
+        gameWrapper.classList.add('hide');
+
+        // И полностью убираем из потока через 0.7 сек (после анимации)
+        setTimeout(() => {
+            gameWrapper.remove();
+        }, 700);
+
+        // Обновляем подзаголовок
+        subtitle.textContent = '🎉 Игра пройдена! А вот и твоё поздравление: 🎉';
+
+        // Показываем большое поздравление
+        greeting.classList.add('show');
+
+        // Большой взрыв конфетти
+        for (let i = 0; i < 6; i++) {
+            setTimeout(() => {
+                createConfettiBurst(
+                    Math.random() * window.innerWidth,
+                    Math.random() * window.innerHeight * 0.6,
+                    70
+                );
+            }, i * 180);
+        }
+        createConfettiRain(250);
+        spawnBalloons(15);
+
+        // Прокручиваем к поздравлению
+        setTimeout(() => {
+            greeting.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 400);
+    }, 1500);
+}
+
+/* ==================== КНОПКА ПОЗДРАВЛЕНИЯ ==================== */
+const celebrateBtn = document.getElementById('celebrateBtn');
+let clicks = 0;
+celebrateBtn.addEventListener('click', () => {
+    const rect = celebrateBtn.getBoundingClientRect();
+    createConfettiBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 100);
+    createConfettiRain(60);
+    spawnBalloons(4);
+
+    clicks++;
+    if (clicks === 1) celebrateBtn.textContent = 'Ещё раз! 🎊';
+    else if (clicks === 3) celebrateBtn.textContent = 'Ты крутой! 🔥';
+    else if (clicks === 5) celebrateBtn.textContent = 'Хватит! 😄';
+});
+
+/* ==================== СЕКРЕТНАЯ КНОПКА С МЕМОМ ==================== */
+const secretBtn = document.getElementById('secretBtn');
+const memeOverlay = document.getElementById('memeOverlay');
+const memeEmoji = document.getElementById('memeEmoji');
+const memeTitle = document.getElementById('memeTitle');
+const memeText = document.getElementById('memeText');
+const memeClose = document.getElementById('memeClose');
+
+const memes = [
+    { emoji: '🤣', title: 'Секретный мем №1', text: 'Никита, помнишь, как ты пытался меня переубедить, что роллы — это суп? Мы до сих пор не разобрались... 🍣' },
+    { emoji: '😎', title: 'Секретный мем №2', text: 'Ты единственный человек, который может есть чипсы в 3 часа ночи так, чтобы никто не услышал. Настоящий ниндзя! 🥷' },
+    { emoji: '🚀', title: 'Секретный мем №3', text: 'Когда ты вырастешь и станешь миллионером, я напомню тебе этот сайт. Ты же не забудешь про старшего брата? 😏' },
+    { emoji: '🐱', title: 'Секретный мем №4', text: 'Твой уровень крутости: как у кота, который уронил ёлку, но сделал вид, что так и было. 😼' },
+    { emoji: '🍕', title: 'Секретный мем №5', text: 'Никита, желаю тебе, чтобы пицца всегда была тёплой, а Wi-Fi — быстрым! 🍕📶' }
+];
+
+let lastMemeIndex = -1;
+function showRandomMeme() {
+    let index;
+    do { index = Math.floor(Math.random() * memes.length); }
+    while (index === lastMemeIndex && memes.length > 1);
+    lastMemeIndex = index;
+
+    const meme = memes[index];
+    memeEmoji.textContent = meme.emoji;
+    memeTitle.textContent = meme.title;
+    memeText.textContent = meme.text;
+    memeOverlay.classList.add('show');
+    createConfettiBurst(window.innerWidth / 2, window.innerHeight / 2, 60);
+}
+function closeMeme() { memeOverlay.classList.remove('show'); }
+
+secretBtn.addEventListener('click', showRandomMeme);
+memeClose.addEventListener('click', closeMeme);
+memeOverlay.addEventListener('click', e => { if (e.target === memeOverlay) closeMeme(); });
+</script>
+</body>
+</html>
