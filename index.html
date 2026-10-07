@@ -173,12 +173,19 @@
         50% { transform: scale(1.05); }
     }
 
-    /* === КОНТЕНТ === */
+    /* === КОНТЕНТ (скрывается в фото-режиме) === */
     .content {
         position: relative;
         z-index: 10;
         max-width: 820px;
         width: 100%;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    body.photo-mode .content {
+        opacity: 0;
+        transform: scale(0.95);
+        pointer-events: none;
     }
 
     h1 {
@@ -214,15 +221,6 @@
         box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
         border: 1px solid rgba(255,255,255,0.15);
         transition: all 0.6s ease;
-    }
-
-    body.photo-mode .game-wrapper {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
-        border-color: rgba(255, 255, 255, 0.5);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
-                    0 0 80px rgba(255, 255, 255, 0.15) inset;
     }
 
     .game-wrapper.hide {
@@ -263,11 +261,6 @@
         cursor: none;
         user-select: none;
         touch-action: none;
-        transition: background 0.6s ease;
-    }
-
-    body.photo-mode #game {
-        background: radial-gradient(circle at 50% 0%, rgba(42, 30, 92, 0.5) 0%, rgba(26, 26, 46, 0.7) 100%);
     }
 
     #basket {
@@ -324,15 +317,6 @@
         box-shadow: 0 25px 80px rgba(255, 100, 200, 0.3),
                     0 0 100px rgba(106, 48, 147, 0.3) inset;
         transition: all 0.6s ease;
-    }
-
-    body.photo-mode .greeting {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
-        border-color: rgba(255, 255, 255, 0.5);
-        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7),
-                    0 0 80px rgba(255, 255, 255, 0.15) inset;
     }
 
     .greeting.show { display: block; animation: greetingAppear 1s ease; }
@@ -392,13 +376,6 @@
         transition: all 0.3s ease;
     }
 
-    body.photo-mode .wish-item {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border-color: rgba(255, 255, 255, 0.4);
-    }
-
     .wish-item:hover {
         background: rgba(255, 255, 255, 0.2);
         transform: translateY(-5px);
@@ -445,7 +422,7 @@
     }
 
     /* ============================================= */
-    /* === КНОПКА ПЕРЕКЛЮЧЕНИЯ ФОНА (скрыта до победы) === */
+    /* === КНОПКА ПЕРЕКЛЮЧЕНИЯ ФОНА === */
     /* ============================================= */
     .bg-toggle-wrapper {
         position: fixed;
@@ -502,7 +479,7 @@
         50% { transform: scale(1.06); box-shadow: 0 12px 35px rgba(255, 217, 61, 0.9); }
     }
 
-    /* Сама кнопка — круглая, с иконкой */
+    /* Сама кнопка */
     .bg-toggle-btn {
         width: 70px;
         height: 70px;
@@ -535,7 +512,6 @@
         transition: opacity 0.3s ease;
     }
 
-    /* Когда фото включено — иконка меняется */
     body.photo-mode .bg-toggle-btn::before { opacity: 0; }
     body.photo-mode .bg-toggle-btn::after { opacity: 1; }
 
@@ -575,7 +551,7 @@
     <canvas id="balloons-canvas"></canvas>
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- Обратный отсчёт -->
+    <!-- Обратный отсчёт (остаётся всегда) -->
     <div class="countdown" id="countdown">
         <div class="countdown-title" id="countdownTitle">До дня рождения осталось:</div>
         <div class="countdown-timer" id="countdownTimer">
@@ -598,7 +574,8 @@
         </div>
     </div>
 
-    <div class="content">
+    <!-- КОНТЕНТ (скрывается при включении фото) -->
+    <div class="content" id="content">
         <h1>С Днём Рождения, Никита! <span class="emoji">🎂</span></h1>
         <p class="subtitle" id="subtitle">
             Чтобы увидеть поздравление — пройди игру! 🎮
@@ -648,7 +625,7 @@
         </div>
     </div>
 
-    <!-- Кнопка переключения фона (появляется только после победы в игре) -->
+    <!-- Кнопка переключения фона -->
     <div class="bg-toggle-wrapper" id="bgToggleWrapper">
         <div class="bg-hint" id="bgHint">
             Нажми, чтобы<br>включить фото! 📸
@@ -1006,7 +983,6 @@ function winGame() {
 
         setTimeout(() => greeting.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
 
-        // ⭐ ПОКАЗЫВАЕМ КНОПКУ ПЕРЕКЛЮЧЕНИЯ ФОНА
         setTimeout(() => {
             bgToggleWrapper.classList.add('visible');
         }, 1200);
@@ -1039,16 +1015,14 @@ bgToggleBtn.addEventListener('click', () => {
     photoModeOn = !photoModeOn;
 
     if (photoModeOn) {
-        // ВКЛЮЧАЕМ ФОТО
+        // ВКЛЮЧАЕМ ФОТО + СКРЫВАЕМ ВСЁ КРОМЕ ТАЙМЕРА
         document.body.classList.add('photo-mode');
         bgHint.innerHTML = 'Нажми, чтобы<br>убрать фото 🚫';
 
-        // Показываем надпись "Весёлый мод ON"
         funBanner.classList.remove('show');
         void funBanner.offsetWidth;
         funBanner.classList.add('show');
 
-        // Конфетти и шарики
         for (let i = 0; i < 4; i++) {
             setTimeout(() => {
                 createConfettiBurst(
@@ -1061,14 +1035,13 @@ bgToggleBtn.addEventListener('click', () => {
         createConfettiRain(120);
         spawnBalloons(10);
     } else {
-        // ВЫКЛЮЧАЕМ ФОТО
+        // ВЫКЛЮЧАЕМ ФОТО + ВОЗВРАЩАЕМ ВСЁ
         document.body.classList.remove('photo-mode');
         bgHint.innerHTML = 'Нажми, чтобы<br>включить фото! 📸';
         funBanner.classList.remove('show');
     }
 });
 
-// Клик на подсказку = клик на кнопку
 bgHint.addEventListener('click', () => bgToggleBtn.click());
 </script>
 </body>
