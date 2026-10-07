@@ -40,11 +40,9 @@
         pointer-events: none;
     }
 
-    body.photo-mode::before {
-        opacity: 1;
-    }
+    body.photo-mode::before { opacity: 1; }
 
-    /* Когда включён фото-режим — затемняем фон для читаемости */
+    /* Затемнение поверх фото для читаемости */
     body.photo-mode::after {
         content: '';
         position: fixed;
@@ -78,7 +76,7 @@
     /* === ПОДПИСЬ НАД СЕКРЕТНОЙ КНОПКОЙ === */
     .secret-hint {
         position: fixed;
-        bottom: 80px;
+        bottom: 85px;
         right: 10px;
         z-index: 30;
         background: linear-gradient(45deg, #FFD93D, #FF6FB5);
@@ -107,12 +105,9 @@
         border-left: 8px solid transparent;
         border-right: 8px solid transparent;
         border-top: 10px solid #FF6FB5;
-        animation: pulseHint 2s infinite;
     }
 
-    .secret-hint:hover {
-        transform: scale(1.05);
-    }
+    .secret-hint:hover { transform: scale(1.05); }
 
     .secret-hint.hidden {
         opacity: 0;
@@ -132,7 +127,7 @@
         left: 50%;
         transform: translate(-50%, -50%) scale(0);
         z-index: 50;
-        font-size: clamp(2em, 7vw, 4em);
+        font-size: clamp(1.8em, 6vw, 3.5em);
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 3px;
@@ -146,7 +141,7 @@
         pointer-events: none;
         opacity: 0;
         white-space: nowrap;
-        animation: gradientShift 2s ease infinite;
+        text-align: center;
     }
 
     .fun-mode-banner.show {
@@ -508,63 +503,6 @@
         animation: none;
     }
 
-    /* === МЕМ === */
-    .meme-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(5px);
-        z-index: 100;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }
-
-    .meme-overlay.show { display: flex; opacity: 1; }
-
-    .meme-card {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        color: #222;
-        border-radius: 24px;
-        padding: 30px;
-        max-width: 480px;
-        width: 100%;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
-        transform: scale(0.5) rotate(-10deg);
-        transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        text-align: center;
-    }
-
-    .meme-overlay.show .meme-card { transform: scale(1) rotate(0deg); }
-
-    .meme-emoji { font-size: 5em; margin-bottom: 15px; animation: wiggle 1s infinite; }
-
-    @keyframes wiggle {
-        0%, 100% { transform: rotate(-5deg); }
-        50% { transform: rotate(5deg); }
-    }
-
-    .meme-title { font-size: 1.5em; font-weight: bold; margin-bottom: 10px; color: #6a3093; }
-
-    .meme-text { font-size: 1.1em; line-height: 1.5; color: #444; margin-bottom: 20px; }
-
-    .meme-close {
-        background: linear-gradient(45deg, #6a3093, #4D96FF);
-        border: none;
-        color: white;
-        padding: 12px 30px;
-        border-radius: 30px;
-        font-size: 1em;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
-
-    .meme-close:hover { transform: scale(1.05); }
-
     @media (max-width: 500px) {
         .countdown { padding: 8px 14px; top: 10px; }
         .time-value { font-size: 1.3em; }
@@ -585,6 +523,7 @@
     <canvas id="balloons-canvas"></canvas>
     <canvas id="confetti-canvas"></canvas>
 
+    <!-- Обратный отсчёт -->
     <div class="countdown" id="countdown">
         <div class="countdown-title" id="countdownTitle">До дня рождения осталось:</div>
         <div class="countdown-timer" id="countdownTimer">
@@ -613,6 +552,7 @@
             Чтобы увидеть поздравление — пройди игру! 🎮
         </p>
 
+        <!-- ИГРА -->
         <div class="game-wrapper" id="gameWrapper">
             <div class="game-header">
                 <div class="game-title">🎁 Поймай 10 подарков!</div>
@@ -625,6 +565,7 @@
             <div class="win-message" id="winMessage">🎉 Уровень пройден! Ты настоящий охотник за подарками! 🏆</div>
         </div>
 
+        <!-- БОЛЬШОЕ ПОЗДРАВЛЕНИЕ -->
         <div class="greeting" id="greeting">
             <div class="greeting-emoji">🎂🎉🎈</div>
             <div class="greeting-title">С ДНЁМ РОЖДЕНИЯ, НИКИТА!</div>
@@ -665,16 +606,6 @@
 
     <!-- Надпись "Весёлый мод ON" -->
     <div class="fun-mode-banner" id="funBanner">🎉 Весёлый мод: ON 🎉</div>
-
-    <!-- Мем -->
-    <div class="meme-overlay" id="memeOverlay">
-        <div class="meme-card">
-            <div class="meme-emoji" id="memeEmoji">🤣</div>
-            <div class="meme-title" id="memeTitle">Секретное сообщение</div>
-            <div class="meme-text" id="memeText"></div>
-            <button class="meme-close" id="memeClose">Закрыть</button>
-        </div>
-    </div>
 
 <script>
 /* ==================== НАСТРОЙКИ ==================== */
@@ -1081,51 +1012,8 @@ secretBtn.addEventListener('click', () => {
     }
 });
 
-// При клике на подсказку — тоже включаем режим
-secretHint.addEventListener('click', () => {
-    secretBtn.click();
-});
-
-/* ==================== МЕМ (не мешает, открывается долгим нажатием) ==================== */
-const memeOverlay = document.getElementById('memeOverlay');
-const memeEmoji = document.getElementById('memeEmoji');
-const memeTitle = document.getElementById('memeTitle');
-const memeText = document.getElementById('memeText');
-const memeClose = document.getElementById('memeClose');
-
-const memes = [
-    { emoji: '🤣', title: 'Секретный мем №1', text: 'Никита, помнишь, как ты пытался меня переубедить, что роллы — это суп? Мы до сих пор не разобрались... 🍣' },
-    { emoji: '😎', title: 'Секретный мем №2', text: 'Ты единственный человек, который может есть чипсы в 3 часа ночи так, чтобы никто не услышал. Настоящий ниндзя! 🥷' },
-    { emoji: '🚀', title: 'Секретный мем №3', text: 'Когда ты вырастешь и станешь миллионером, я напомню тебе этот сайт. Ты же не забудешь про старшего брата? 😏' },
-    { emoji: '🐱', title: 'Секретный мем №4', text: 'Твой уровень крутости: как у кота, который уронил ёлку, но сделал вид, что так и было. 😼' },
-    { emoji: '🍕', title: 'Секретный мем №5', text: 'Никита, желаю тебе, чтобы пицца всегда была тёплой, а Wi-Fi — быстрым! 🍕📶' }
-];
-
-let lastMemeIndex = -1;
-let pressTimer = null;
-
-// Долгое нажатие на секретную кнопку = показать мем
-secretBtn.addEventListener('mousedown', () => {
-    pressTimer = setTimeout(() => {
-        let index;
-        do { index = Math.floor(Math.random() * memes.length); }
-        while (index === lastMemeIndex && memes.length > 1);
-        lastMemeIndex = index;
-        const meme = memes[index];
-        memeEmoji.textContent = meme.emoji;
-        memeTitle.textContent = meme.title;
-        memeText.textContent = meme.text;
-        memeOverlay.classList.add('show');
-        createConfettiBurst(window.innerWidth / 2, window.innerHeight / 2, 60);
-    }, 700);
-});
-
-secretBtn.addEventListener('mouseup', () => clearTimeout(pressTimer));
-secretBtn.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-
-function closeMeme() { memeOverlay.classList.remove('show'); }
-memeClose.addEventListener('click', closeMeme);
-memeOverlay.addEventListener('click', e => { if (e.target === memeOverlay) closeMeme(); });
+// Клик на подсказку = клик на кнопку
+secretHint.addEventListener('click', () => secretBtn.click());
 </script>
 </body>
 </html>
